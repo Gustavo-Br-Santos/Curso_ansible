@@ -367,3 +367,543 @@ ansible-playbook provision.yml -i hosts
 
 
 
+# Baixando e descompactando o wordpress
+
+# provision.yml
+
+---
+- hosts: all
+  tasks:
+    - name: 'Instala pacotes de dependencia do sistema operacional'
+      apt:
+        name:
+          - php5
+          - apache2
+          - libapache2-mod-php5
+          - php5-gd
+          - libssh2-php
+          - php5-mcrypt
+          - mysql-server-5.6
+          - python-mysqldb
+          - php5-mysql
+        state: latest
+      become: yes # Indica usuario root 
+
+    - name: 'Cria o banco MySQL'
+      mysql_db:
+        name: wordpress_db
+        login_user: root
+        state: present
+
+    - name: 'Cria o usuario do MySQL'
+      mysql_user:
+        login_user: root
+        name: wordpressuser
+        password: 12345
+        priv: 'wordpress_db.*:ALL' # Tem todos privilegios para o banco wordpress_db
+        state: present
+
+    - name: 'Baixa o arquivo de instalacao do wordpress'
+      get_url:
+        url: 'https://wordpress.org/latest.tar.gz'
+        dest: '/tmp/wordpress.tar.gz'
+
+
+    - name: 'Descompactar o arquivo'
+      unarchive:
+        src: '/tmp/wordpress.tar.gz'
+        dest: /var/www/
+        remote_src: yes
+      become: yes
+
+# Comando shell
+
+gustavo@ubuntu:~/Desktop/wordpress_com_ansible$ ansible-playbook provision.yml -i hosts 
+
+# PLAY [all] **************************************************************************************
+
+# TASK [Gathering Facts] **************************************************************************
+# ok: [172.17.177.40]
+
+# TASK [Instala pacotes de dependencia do sistema operacional] ************************************
+# ok: [172.17.177.40]
+
+# TASK [Cria o banco MySQL] ***********************************************************************
+# ok: [172.17.177.40]
+
+# TASK [Cria o usuario do MySQL] ******************************************************************
+# [WARNING]: The value ******** (type int) in a string field was converted to u'********' (type
+# string). If this does not look like what you expect, quote the entire value to ensure it does
+# not change.
+# [WARNING]: Module did not set no_log for update_password
+# ok: [172.17.177.40]
+
+# TASK [Baixa o arquivo de instalacao do wordpress] ***********************************************
+# ok: [172.17.177.40]
+
+# TASK [Descompactar o arquivo] *******************************************************************
+# changed: [172.17.177.40]
+
+# PLAY RECAP **************************************************************************************
+# 172.17.177.40              : ok=6    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+
+
+# Criando a copia do arquivo
+
+---
+- hosts: all
+  tasks:
+    - name: 'Instala pacotes de dependencia do sistema operacional'
+      apt:
+        name:
+          - php5
+          - apache2
+          - libapache2-mod-php5
+          - php5-gd
+          - libssh2-php
+          - php5-mcrypt
+          - mysql-server-5.6
+          - python-mysqldb
+          - php5-mysql
+        state: latest
+      become: yes # Indica usuario root 
+
+    - name: 'Cria o banco MySQL'
+      mysql_db:
+        name: wordpress_db
+        login_user: root
+        state: present
+
+    - name: 'Cria o usuario do MySQL'
+      mysql_user:
+        login_user: root
+        name: wordpressuser
+        password: 12345
+        priv: 'wordpress_db.*:ALL' # Tem todos privilegios para o banco wordpress_db
+        state: present
+
+    - name: 'Baixa o arquivo de instalacao do wordpress'
+      get_url:
+        url: 'https://wordpress.org/latest.tar.gz'
+        dest: '/tmp/wordpress.tar.gz'
+
+
+    - name: 'Descompactar o arquivo'
+      unarchive:
+        src: '/tmp/wordpress.tar.gz'
+        dest: /var/www/
+        remote_src: yes
+      become: yes
+
+    - copy:
+        src: '/var/www/wordpress/wp-config-sample.php'
+        dest: '/var/www/wordpress/wp-config.php'
+        remote_src: yes
+      become: yes
+
+
+# Comando shell
+
+gustavo@ubuntu:~/Desktop/wordpress_com_ansible$ ansible-playbook provision.yml -i hosts 
+
+# Saida
+# PLAY [all] **************************************************************************************
+
+# TASK [Gathering Facts] **************************************************************************
+# ok: [172.17.177.40]
+
+# TASK [Instala pacotes de dependencia do sistema operacional] ************************************
+# ok: [172.17.177.40]
+
+# TASK [Cria o banco MySQL] ***********************************************************************
+# ok: [172.17.177.40]
+
+# TASK [Cria o usuario do MySQL] ******************************************************************
+# [WARNING]: The value ******** (type int) in a string field was converted to u'********' (type
+# string). If this does not look like what you expect, quote the entire value to ensure it does
+# not change.
+# [WARNING]: Module did not set no_log for update_password
+# ok: [172.17.177.40]
+
+# TASK [Baixa o arquivo de instalacao do wordpress] ***********************************************
+# ok: [172.17.177.40]
+
+# TASK [Descompactar o arquivo] *******************************************************************
+# ok: [172.17.177.40]
+
+# TASK [copy] *************************************************************************************
+# changed: [172.17.177.40]
+
+# PLAY RECAP **************************************************************************************
+# 172.17.177.40              : ok=7    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+
+
+# Configurando as entrdas do banco de dados
+
+# provision.yml
+---
+- hosts: all
+  tasks:
+    - name: 'Instala pacotes de dependencia do sistema operacional'
+      apt:
+        name:
+          - php5
+          - apache2
+          - libapache2-mod-php5
+          - php5-gd
+          - libssh2-php
+          - php5-mcrypt
+          - mysql-server-5.6
+          - python-mysqldb
+          - php5-mysql
+        state: latest
+      become: yes # Indica usuario root 
+
+    - name: 'Cria o banco MySQL'
+      mysql_db:
+        name: wordpress_db
+        login_user: root
+        state: present
+
+    - name: 'Cria o usuario do MySQL'
+      mysql_user:
+        login_user: root
+        name: wordpressuser
+        password: 12345
+        priv: 'wordpress_db.*:ALL' # Tem todos privilegios para o banco wordpress_db
+        state: present
+
+    - name: 'Baixa o arquivo de instalacao do wordpress'
+      get_url:
+        url: 'https://wordpress.org/latest.tar.gz'
+        dest: '/tmp/wordpress.tar.gz'
+
+
+    - name: 'Descompactar o arquivo'
+      unarchive:
+        src: '/tmp/wordpress.tar.gz'
+        dest: /var/www/
+        remote_src: yes
+      become: yes
+
+    - copy:
+        src: '/var/www/wordpress/wp-config-sample.php'
+        dest: '/var/www/wordpress/wp-config.php'
+        remote_src: yes
+      become: yes
+
+    - name: 'Configura o wb-config com as entradas do banco de dados'
+      replace:
+        path: '/var/www/wordpress/wp-config.php'
+        regexp: "{{ item.regex }}"
+        replace: "{{ item.value }}"
+      with_items:
+        - { regex: 'database_name_here', value: 'wordpress_db'}
+        - { regex: 'username_here', value: 'wordpressuser'}
+        - { regex: 'password_here', value: '12345'}
+      become: yes
+
+
+# Comando shell
+
+gustavo@ubuntu:~/Desktop/wordpress_com_ansible$ ansible-playbook provision.yml -i hosts 
+
+# Saida
+
+# PLAY [all] *************************************************************************************************************************
+
+# TASK [Gathering Facts] *************************************************************************************************************
+# ok: [172.17.177.40]
+
+# TASK [Instala pacotes de dependencia do sistema operacional] ***********************************************************************
+# ok: [172.17.177.40]
+
+# TASK [Cria o banco MySQL] **********************************************************************************************************
+# ok: [172.17.177.40]
+
+# TASK [Cria o usuario do MySQL] *****************************************************************************************************
+# [WARNING]: The value ******** (type int) in a string field was converted to u'********' (type string). If this does not look like
+# what you expect, quote the entire value to ensure it does not change.
+# [WARNING]: Module did not set no_log for update_password
+# ok: [172.17.177.40]
+
+# TASK [Baixa o arquivo de instalacao do wordpress] **********************************************************************************
+# ok: [172.17.177.40]
+
+# TASK [Descompactar o arquivo] ******************************************************************************************************
+# ok: [172.17.177.40]
+
+# TASK [copy] ************************************************************************************************************************
+# ok: [172.17.177.40]
+
+# TASK [Configura o wb-config com as entradas do banco de dados] *********************************************************************
+# changed: [172.17.177.40] => (item={'regex': 'database_name_here', 'value': 'wordpress_db'})
+# changed: [172.17.177.40] => (item={'regex': 'username_here', 'value': 'wordpressuser'})
+# changed: [172.17.177.40] => (item={'regex': 'password_here', 'value': '12345'})
+
+# PLAY RECAP *************************************************************************************************************************
+# 172.17.177.40              : ok=8    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0 
+
+# Confirmando alteracoes:
+
+
+gustavo@ubuntu:~/Desktop/wordpress_com_ansible$ vagrant ssh
+
+# Welcome to Ubuntu 14.04.6 LTS (GNU/Linux 3.13.0-170-generic x86_64)
+
+#  * Documentation:  https://help.ubuntu.com/
+
+#   System information as of Tue Nov 17 20:47:27 UTC 2020
+
+#   System load:  0.0               Processes:           82
+#   Usage of /:   4.6% of 39.34GB   Users logged in:     0
+#   Memory usage: 59%               IP address for eth0: 10.0.2.15
+#   Swap usage:   0%                IP address for eth1: 172.17.177.40
+
+#   Graph this data and manage this system at:
+#     https://landscape.canonical.com/
+
+
+# Last login: Tue Nov 17 20:48:15 2020 from 172.17.177.1
+
+# vagrant@vagrant-ubuntu-trusty-64:~$ cd /var/www/wordpress/
+
+# vagrant@vagrant-ubuntu-trusty-64:/var/www/wordpress$ less wp-config.php 
+
+
+# /**
+#  * The base configuration for WordPress
+#  *
+#  * The wp-config.php creation script uses this file during the
+#  * installation. You don't have to use the web site, you can
+#  * copy this file to "wp-config.php" and fill in the values.
+#  *
+#  * This file contains the following configurations:
+#  *
+#  * * MySQL settings
+#  * * Secret keys
+#  * * Database table prefix
+#  * * ABSPATH
+#  *
+#  * @link https://wordpress.org/support/article/editing-wp-config-php/
+#  *
+#  * @package WordPress
+#  */
+
+# // ** MySQL settings - You can get this info from your web host ** //
+# /** The name of the database for WordPress */
+# define( 'DB_NAME', 'wordpress_db' );  <--------- MODIFICADO COM SUCESSO
+
+# /** MySQL database username */
+# define( 'DB_USER', 'wordpressuser' );  <--------- MODIFICADO COM SUCESSO
+
+# /** MySQL database password */
+# define( 'DB_PASSWORD', '12345' );  <--------- MODIFICADO COM SUCESSO
+
+# /** MySQL hostname */
+# define( 'DB_HOST', 'localhost' );
+
+# /** Database Charset to use in creating database tables. */
+# define( 'DB_CHARSET', 'utf8' );
+# ...
+
+
+# Configurando o apache para conectar com o banco
+
+# Foi criada um diretorio com o arquivo de provisionamento do apace para o wordpress
+
+# provision.yml
+
+---
+- hosts: all
+  tasks:
+    - name: 'Instala pacotes de dependencia do sistema operacional'
+      apt:
+        name:
+          - php5
+          - apache2
+          - libapache2-mod-php5
+          - php5-gd
+          - libssh2-php
+          - php5-mcrypt
+          - mysql-server-5.6
+          - python-mysqldb
+          - php5-mysql
+        state: latest
+      become: yes # Indica usuario root 
+
+    - name: 'Cria o banco MySQL'
+      mysql_db:
+        name: wordpress_db
+        login_user: root
+        state: present
+
+    - name: 'Cria o usuario do MySQL'
+      mysql_user:
+        login_user: root
+        name: wordpressuser
+        password: 12345
+        priv: 'wordpress_db.*:ALL' # Tem todos privilegios para o banco wordpress_db
+        state: present
+
+    - name: 'Baixa o arquivo de instalacao do wordpress'
+      get_url:
+        url: 'https://wordpress.org/latest.tar.gz'
+        dest: '/tmp/wordpress.tar.gz'
+
+
+    - name: 'Descompactar o arquivo'
+      unarchive:
+        src: '/tmp/wordpress.tar.gz'
+        dest: /var/www/
+        remote_src: yes
+      become: yes
+
+    - copy:
+        src: '/var/www/wordpress/wp-config-sample.php'
+        dest: '/var/www/wordpress/wp-config.php'
+        remote_src: yes
+      become: yes
+
+    - name: 'Configura o wb-config com as entradas do banco de dados'
+      replace:
+        path: '/var/www/wordpress/wp-config.php'
+        regexp: "{{ item.regex }}"
+        replace: "{{ item.value }}"
+      with_items:
+        - { regex: 'database_name_here', value: 'wordpress_db'}
+        - { regex: 'username_here', value: 'wordpressuser'}
+        - { regex: 'password_here', value: '12345'}
+      become: yes
+
+    - name: 'Configura Apache para servir o Wordpress'
+      copy:
+        src: 'files/000-default.conf'
+        dest: '/etc/apache2/sites-available/000-default.conf'
+      become: yes
+
+
+# Comando shell
+
+gustavo@ubuntu:~/Desktop/wordpress_com_ansible$ ansible-playbook provision.yml -i hosts 
+
+PLAY [all] *************************************************************************************************************************
+
+TASK [Gathering Facts] *************************************************************************************************************
+ok: [172.17.177.40]
+
+TASK [Instala pacotes de dependencia do sistema operacional] ***********************************************************************
+ok: [172.17.177.40]
+
+TASK [Cria o banco MySQL] **********************************************************************************************************
+ok: [172.17.177.40]
+
+TASK [Cria o usuario do MySQL] *****************************************************************************************************
+[WARNING]: The value ******** (type int) in a string field was converted to u'********' (type string). If this does not look like
+what you expect, quote the entire value to ensure it does not change.
+[WARNING]: Module did not set no_log for update_password
+ok: [172.17.177.40]
+
+TASK [Baixa o arquivo de instalacao do wordpress] **********************************************************************************
+ok: [172.17.177.40]
+
+TASK [Descompactar o arquivo] ******************************************************************************************************
+ok: [172.17.177.40]
+
+TASK [copy] ************************************************************************************************************************
+changed: [172.17.177.40]
+
+TASK [Configura o wb-config com as entradas do banco de dados] *********************************************************************
+changed: [172.17.177.40] => (item={'regex': 'database_name_here', 'value': 'wordpress_db'})
+changed: [172.17.177.40] => (item={'regex': 'username_here', 'value': 'wordpressuser'})
+changed: [172.17.177.40] => (item={'regex': 'password_here', 'value': '12345'})
+
+TASK [Configura Apache para servir o Wordpress] ************************************************************************************
+changed: [172.17.177.40]
+
+PLAY RECAP *************************************************************************************************************************
+172.17.177.40              : ok=9    changed=3    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0 
+
+
+# Criando um handler para reiniciar o apache assim que todas as configuracoes foresm
+# concluidas e dessa forma subir o wordpress
+
+
+---
+- hosts: all
+
+  handlers: 
+    - name: restart apache
+      service: 
+        name: apache2
+        state: restarted
+      become: yes
+
+  tasks:
+    - name: 'Instala pacotes de dependencia do sistema operacional'
+      apt:
+        name:
+          - php5
+          - apache2
+          - libapache2-mod-php5
+          - php5-gd
+          - libssh2-php
+          - php5-mcrypt
+          - mysql-server-5.6
+          - python-mysqldb
+          - php5-mysql
+        state: latest
+      become: yes # Indica usuario root 
+
+    - name: 'Cria o banco MySQL'
+      mysql_db:
+        name: wordpress_db
+        login_user: root
+        state: present
+
+    - name: 'Cria o usuario do MySQL'
+      mysql_user:
+        login_user: root
+        name: wordpressuser
+        password: 12345
+        priv: 'wordpress_db.*:ALL' # Tem todos privilegios para o banco wordpress_db
+        state: present
+
+    - name: 'Baixa o arquivo de instalacao do wordpress'
+      get_url:
+        url: 'https://wordpress.org/latest.tar.gz'
+        dest: '/tmp/wordpress.tar.gz'
+
+
+    - name: 'Descompactar o arquivo'
+      unarchive:
+        src: '/tmp/wordpress.tar.gz'
+        dest: /var/www/
+        remote_src: yes
+      become: yes
+
+    - copy:
+        src: '/var/www/wordpress/wp-config-sample.php'
+        dest: '/var/www/wordpress/wp-config.php'
+        remote_src: yes
+      become: yes
+
+    - name: 'Configura o wb-config com as entradas do banco de dados'
+      replace:
+        path: '/var/www/wordpress/wp-config.php'
+        regexp: "{{ item.regex }}"
+        replace: "{{ item.value }}"
+      with_items:
+        - { regex: 'database_name_here', value: 'wordpress_db'}
+        - { regex: 'username_here', value: 'wordpressuser'}
+        - { regex: 'password_here', value: '12345'}
+      become: yes
+
+    - name: 'Configura Apache para servir o Wordpress'
+      copy:
+        src: 'files/000-default.conf'
+        dest: '/etc/apache2/sites-available/000-default.conf'
+      become: yes
+      notify:
+        - restart apache
+
